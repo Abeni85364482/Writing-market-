@@ -23,6 +23,8 @@ import android.webkit.SslErrorHandler;
 
 public class MainActivity extends Activity {
     private WebView webView;
+    private android.webkit.ValueCallback<Uri[]> fileCallback;
+    private static final int FILE_PICKER_REQUEST = 4102;
     private static final String HOME = "https://abeni85364482.github.io/Writing-market-/";
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -48,11 +50,30 @@ public class MainActivity extends Activity {
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onShowFileChooser(WebView view, android.webkit.ValueCallback<Uri[]> callback, WebChromeClient.FileChooserParams params) {
+                if (fileCallback != null) fileCallback.onReceiveValue(null);
+                fileCallback = callback;
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("image/*");
+                try { startActivityForResult(Intent.createChooser(intent, "Choose product photo"), FILE_PICKER_REQUEST); }
+                catch (ActivityNotFoundException e) { fileCallback = null; return false; }
+                return true;
+            }
             @Override public void onPermissionRequest(PermissionRequest request) { request.deny(); }
             @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) { callback.invoke(origin, false, false); }
         });
         if (savedInstanceState == null) webView.loadUrl(HOME);
         else webView.restoreState(savedInstanceState);
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FILE_PICKER_REQUEST && fileCallback != null) {
+            Uri[] result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+            fileCallback.onReceiveValue(result);
+            fileCallback = null;
+        }
     }
 
     @Override protected void onSaveInstanceState(Bundle outState) { super.onSaveInstanceState(outState); webView.saveState(outState); }
