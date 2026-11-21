@@ -178,7 +178,7 @@ public class MainActivity extends Activity {
         HttpURLConnection c=(HttpURLConnection)url.openConnection();
         c.setRequestMethod(method); c.setConnectTimeout(15000); c.setReadTimeout(20000);
         c.setRequestProperty("apikey",KEY);
-        c.setRequestProperty("Authorization","Bearer "+(accessToken.isEmpty()?KEY:accessToken));
+        if(!accessToken.isEmpty()) c.setRequestProperty("Authorization","Bearer "+accessToken);
         c.setRequestProperty("Content-Type","application/json");
         c.setRequestProperty("Accept","application/json");
         if(body!=null){ c.setDoOutput(true); c.setRequestProperty("Prefer","return=minimal"); try(OutputStream os=c.getOutputStream()){os.write(body.toString().getBytes(StandardCharsets.UTF_8));}}
@@ -195,7 +195,7 @@ public class MainActivity extends Activity {
                 URL url=new URL(API+"/rest/v1/products?select=*&order=created_at.desc");
                 HttpURLConnection c=(HttpURLConnection)url.openConnection();
                 c.setConnectTimeout(15000);c.setReadTimeout(20000);
-                c.setRequestProperty("apikey",KEY);c.setRequestProperty("Authorization","Bearer "+(accessToken.isEmpty()?KEY:accessToken));
+                c.setRequestProperty("apikey",KEY);if(!accessToken.isEmpty())c.setRequestProperty("Authorization","Bearer "+accessToken);
                 int code=c.getResponseCode(); if(code<200||code>=300)throw new Exception("Products unavailable ("+code+")");
                 ByteArrayOutputStream out=new ByteArrayOutputStream();try(InputStream in=c.getInputStream()){byte[] b=new byte[4096];int n;while((n=in.read(b))!=-1)out.write(b,0,n);}
                 JSONArray arr=new JSONArray(out.toString("UTF-8")); products.clear();for(int i=0;i<arr.length();i++)products.add(arr.getJSONObject(i));c.disconnect();
@@ -210,7 +210,7 @@ public class MainActivity extends Activity {
             String name=p.optString("name"), cat=p.optString("category"), desc=p.optString("description");
             if(!(name+" "+cat+" "+desc).toLowerCase(Locale.ROOT).contains(q))continue;
             LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(dp(14),dp(12),dp(14),dp(12));
-            card.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.WHITE));
+            card.setBackgroundColor(Color.WHITE);
             TextView title=text(name,18,true,Color.rgb(20,40,70));card.addView(title);
             card.addView(text(cat,12,false,Color.GRAY));
             card.addView(text(String.format(Locale.US,"%,.0f ETB",p.optDouble("price")),19,true,Color.rgb(37,99,235)));
