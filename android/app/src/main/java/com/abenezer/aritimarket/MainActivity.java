@@ -124,7 +124,9 @@ public class MainActivity extends Activity {
         header.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
         Button language = button(languageIndex == 0 ? "አማርኛ ▾" : languageIndex == 1 ? "English ▾" : "Afaan Oromoo ▾", false);
         header.addView(language); language.setOnClickListener(v -> {
-            languageIndex = (languageIndex + 1) % 3;\n            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt("language_index", languageIndex).apply();\n            buildScreen(); loadProducts();
+            languageIndex = (languageIndex + 1) % 3;
+            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt("language_index", languageIndex).apply();
+            buildScreen(); loadProducts();
         });
         root.addView(header);
         ScrollView scroll = new ScrollView(this);
