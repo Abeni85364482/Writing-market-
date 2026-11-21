@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
     private LinearLayout root, content, productList;
     private EditText search, email, password, productName, price, category, seller, phone, description;
     private TextView message, accountLabel;
-    private boolean amharic = true;
+    private int languageIndex = 0; // 0 Amharic, 1 English, 2 Afaan Oromoo
     private String accessToken = "";
     private String userId = "";
 
@@ -45,11 +45,48 @@ public class MainActivity extends Activity {
         SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
         accessToken = p.getString("access_token", "");
         userId = p.getString("user_id", "");
+        languageIndex = p.getInt("language_index", 0);
         buildScreen();
         loadProducts();
     }
 
-    private String tr(String am, String en) { return amharic ? am : en; }
+    private String tr(String am, String en) {
+        if (languageIndex == 0) return am;
+        if (languageIndex == 1) return en;
+        switch (en) {
+            case "Buy and sell with ease.": return "Salphaatti bitadhaa, gurguradhaa.";
+            case "Discover products, post listings and contact sellers.": return "Oomishaalee barbaadaa, beeksisa maxxansaa, gurgurtoota qunnamaa.";
+            case "Search products…": return "Oomisha barbaadi…";
+            case "Browsing as guest": return "Akka keessummaatti daawwachaa jirta";
+            case "Signed in": return "Seenteetta";
+            case "Account": return "Herrega";
+            case "Password": return "Jecha iccitii";
+            case "Sign in": return "Seeni";
+            case "Sign up": return "Galmaa'i";
+            case "Sign out": return "Ba'i";
+            case "Post a product": return "Oomisha maxxansi";
+            case "Product name": return "Maqaa oomishaa";
+            case "Price (ETB)": return "Gatii (ETB)";
+            case "Category": return "Ramaddii";
+            case "Seller name": return "Maqaa gurguraa";
+            case "Phone number": return "Lakkoofsa bilbilaa";
+            case "Product description": return "Ibsa oomishaa";
+            case "Publish listing": return "Beeksisa maxxansi";
+            case "Latest products": return "Oomishaalee haaraa";
+            case "Enter email and a password of at least 6 characters.": return "Imeelii fi jecha iccitii qubee 6 ol qabu galchi.";
+            case "Sign-up submitted. Check your email to confirm.": return "Galmeen ergameera. Imeelii kee mirkaneessi.";
+            case "No session returned. Confirm your email, then sign in.": return "Seensaan hin milkoofne. Imeelii kee mirkaneessi, achiis seeni.";
+            case "Signed in successfully.": return "Milkaa'inaan seenteetta.";
+            case "Please sign in before posting.": return "Oomisha maxxansuu dura seeni.";
+            case "Complete product, seller and phone fields.": return "Maqaa oomishaa, gurguraa fi lakkoofsa bilbilaa guuti.";
+            case "Product published.": return "Oomishni maxxanfameera.";
+            case "Enter a valid price.": return "Gatii sirrii galchi.";
+            case "Could not load products. Check your internet connection.": return "Oomishaaleen hin fe'amne. Intarneetii kee mirkaneessi.";
+            case "Contact seller on WhatsApp": return "WhatsApp irratti gurguraa qunnami";
+            case "No products found.": return "Oomishni hin argamne.";
+            default: return en;
+        }
+    }
     private int dp(float v) { return (int)(v * getResources().getDisplayMetrics().density + .5f); }
 
     private TextView text(String value, int size, boolean bold, int color) {
@@ -84,9 +121,9 @@ public class MainActivity extends Activity {
         header.setBackgroundColor(Color.rgb(16,29,53));
         TextView brand = text("ARITI MARKET", 21, true, Color.WHITE);
         header.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
-        Button language = button("አማ / EN", false);
+        Button language = button(languageIndex == 0 ? "አማርኛ ▾" : languageIndex == 1 ? "English ▾" : "Afaan Oromoo ▾", false);
         header.addView(language); language.setOnClickListener(v -> {
-            amharic = !amharic; buildScreen(); loadProducts();
+            languageIndex = (languageIndex + 1) % 3;\n            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt("language_index", languageIndex).apply();\n            buildScreen(); loadProducts();
         });
         root.addView(header);
         ScrollView scroll = new ScrollView(this);
