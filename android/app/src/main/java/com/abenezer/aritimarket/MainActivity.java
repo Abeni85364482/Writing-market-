@@ -39,6 +39,7 @@ public class MainActivity extends Activity {
     private int languageIndex = 0; // 0 Amharic, 1 English, 2 Afaan Oromoo
     private String accessToken = "";
     private String userId = "";
+    private Uri selectedImageUri = null;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -171,6 +172,8 @@ public class MainActivity extends Activity {
         phone = field(tr("ስልክ ቁጥር","Phone number"),3);
         description = field(tr("የምርት መግለጫ","Product description"),0);
         for(EditText e:new EditText[]{productName,price,category,seller,phone,description}) content.addView(e);
+        Button chooseImage = button(tr("ፎቶ ምረጥ","Choose product photo"),false); content.addView(chooseImage);
+        chooseImage.setOnClickListener(v -> { Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT); pick.setType("image/*"); pick.addCategory(Intent.CATEGORY_OPENABLE); startActivityForResult(pick, 4102); });
         Button publish = button(tr("አሳትም","Publish listing"),true); content.addView(publish);
         publish.setOnClickListener(v -> publishProduct());
     }
@@ -196,6 +199,42 @@ public class MainActivity extends Activity {
             } catch(Exception ex){ main.post(() -> message.setText(ex.getMessage())); }
         });
     }
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 4102 && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            selectedImageUri = data.getData();
+            message.setText(tr("ፎቶ ተመርጧል።","Photo selected."));
+        }
+    }
+    private String uploadProductImage(Uri uri) throws Exception {
+        String mime = getContentResolver().getType(uri);
+        if (mime == null || !mime.startsWith("image/")) throw new Exception("Choose an image file.");
+        String ext = mime.equals("image/png") ? ".png" : mime.equals("image/webp") ? ".webp" : ".jpg";
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
+            if (in == null) throw new Exception("Could not read selected image.");
+            byte[] buf = new byte[8192]; int n;
+            while ((n = in.read(buf)) != -1) {
+                bytes.write(buf, 0, n);
+                if (bytes.size() > 4 * 1024 * 1024) throw new Exception("Image must be 4 MB or smaller.");
+            }
+        }
+        String objectPath = userId + "/" + System.currentTimeMillis() + ext;
+        String encodedPath = URLEncoder.encode(objectPath, "UTF-8").replace("+", "%20").replace("%2F", "/");
+        URL url = new URL(API + "/storage/v1/object/product-images/" + encodedPath);
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestMethod("POST"); c.setConnectTimeout(20000); c.setReadTimeout(30000); c.setDoOutput(true);
+        c.setRequestProperty("apikey", KEY); c.setRequestProperty("Authorization", "Bearer " + accessToken);
+        c.setRequestProperty("Content-Type", mime); c.setRequestProperty("x-upsert", "false");
+        try (OutputStream out = c.getOutputStream()) { out.write(bytes.toByteArray()); }
+        int code = c.getResponseCode();
+        InputStream response = code >= 200 && code < 300 ? c.getInputStream() : c.getErrorStream();
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        if (response != null) { byte[] b = new byte[2048]; int n; while ((n = response.read(b)) != -1) result.write(b, 0, n); response.close(); }
+        c.disconnect();
+        if (code < 200 || code >= 300) throw new Exception(result.toString("UTF-8"));
+        return API + "/storage/v1/object/public/product-images/" + encodedPath;
+    }
     private void publishProduct() {
         if(accessToken.isEmpty()){ message.setText(tr("ምርት ለመለጠፍ መጀመሪያ ይግቡ።","Please sign in before posting.")); return; }
         try {
@@ -207,7 +246,13 @@ public class MainActivity extends Activity {
             p.put("phone",phone.getText().toString().trim());
             p.put("description",description.getText().toString().trim());
             if(p.optString("name").isEmpty()||p.optString("seller_name").isEmpty()||p.optString("phone").isEmpty()) throw new Exception("Complete product, seller and phone fields.");
-            io.execute(() -> { try { request("POST","/rest/v1/products",p,null); main.post(() -> { message.setText(tr("ምርቱ ተለጥፏል።","Product published.")); loadProducts(); }); } catch(Exception ex){ main.post(() -> message.setText(ex.getMessage())); }});
+            final Uri imageToUpload = selectedImageUri;
+            io.execute(() -> { try {
+                if (imageToUpload != null) p.put("image_url", uploadProductImage(imageToUpload));
+                request("POST","/rest/v1/products",p,null);
+                selectedImageUri = null;
+                main.post(() -> { message.setText(tr("ምርቱ ተለጥፏል።","Product published.")); loadProducts(); });
+            } catch(Exception ex){ main.post(() -> message.setText(ex.getMessage())); }});
         } catch(Exception ex){ message.setText(tr("ዋጋውን በትክክል ያስገቡ።","Enter a valid price.")); }
     }
     private JSONObject request(String method,String path,JSONObject body,String query) throws Exception {
@@ -248,6 +293,17 @@ public class MainActivity extends Activity {
             if(!(name+" "+cat+" "+desc).toLowerCase(Locale.ROOT).contains(q))continue;
             LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(dp(14),dp(12),dp(14),dp(12));
             card.setBackgroundColor(Color.WHITE);
+            String imageUrl = p.optString("image_url", "");
+            if (!imageUrl.isEmpty()) {
+                ImageView photo = new ImageView(this);
+                photo.setLayoutParams(new LinearLayout.LayoutParams(-1, dp(180)));
+                photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                card.addView(photo);
+                io.execute(() -> { try {
+                    Bitmap bitmap = BitmapFactory.decodeStream(new URL(imageUrl).openStream());
+                    if (bitmap != null) main.post(() -> photo.setImageBitmap(bitmap));
+                } catch (Exception ignored) {} });
+            }
             TextView title=text(name,18,true,Color.rgb(20,40,70));card.addView(title);
             card.addView(text(cat,12,false,Color.GRAY));
             card.addView(text(String.format(Locale.US,"%,.0f ETB",p.optDouble("price")),19,true,Color.rgb(37,99,235)));
