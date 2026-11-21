@@ -165,8 +165,27 @@ public class MainActivity extends Activity {
         TextView heroSub = text(tr("ምርቶችን ይፈልጉ፣ ያስታውቁ፣ ከሻጮች ጋር ይገናኙ።","Discover products, post listings and connect with sellers."), 14, false, Color.WHITE);
         hero.addView(heroTag); hero.addView(heroTitle); hero.addView(heroSub);
         content.addView(hero);
-        TextView quick = text("🛒  Browse     📦  Sell     🤝  Connect", 13, true, Color.rgb(84,48,151));
+        TextView quick = text("🛒  BROWSE     📦  SELL     🤝  CONNECT", 12, true, Color.rgb(84,48,151));
         quick.setPadding(dp(8),dp(14),dp(8),dp(8)); content.addView(quick);
+        LinearLayout deal = new LinearLayout(this); deal.setOrientation(LinearLayout.VERTICAL);
+        deal.setPadding(dp(16),dp(14),dp(16),dp(14));
+        deal.setBackground(rounded(Color.rgb(239,229,255),18,Color.rgb(225,208,250)));
+        deal.addView(text("✨  "+tr("ምርጥ ቅናሾች ለእርስዎ","BEST DEALS JUST FOR YOU!"),17,true,Color.rgb(77,31,155)));
+        deal.addView(text(tr("የሚፈልጉትን ምርት እዚህ ያግኙ","Discover great products from sellers near you."),12,false,Color.rgb(83,72,103)));
+        content.addView(deal);
+        TextView categoriesTitle = text(tr("ምድቦች","CATEGORIES"),16,true,Color.rgb(54,28,122));
+        categoriesTitle.setPadding(dp(2),dp(14),dp(2),dp(4)); content.addView(categoriesTitle);
+        HorizontalScrollView categoryScroll = new HorizontalScrollView(this);
+        categoryScroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout categoryRow = new LinearLayout(this); categoryRow.setOrientation(LinearLayout.HORIZONTAL);
+        String[] categoryNames = {"All","Electronics","Fashion","Home","Beauty"};
+        for (String categoryName : categoryNames) {
+            Button chip = button(categoryName, false);
+            LinearLayout.LayoutParams chipLp = new LinearLayout.LayoutParams(-2,dp(42));
+            chipLp.rightMargin=dp(7); categoryRow.addView(chip,chipLp);
+            chip.setOnClickListener(v -> search.setText(categoryName.equals("All") ? "" : categoryName));
+        }
+        categoryScroll.addView(categoryRow); content.addView(categoryScroll);
 
         search = field(tr("ምርት ፈልግ…","Search products…"), 0);
         LinearLayout.LayoutParams searchLp = new LinearLayout.LayoutParams(-1, dp(52)); searchLp.bottomMargin=dp(12);
@@ -202,7 +221,22 @@ public class MainActivity extends Activity {
         socialRow.addView(facebook); socialRow.addView(telegram); socialRow.addView(tiktok); socialRow.addView(instagram);
         socialCard.addView(socialRow); content.addView(socialCard);
         accountLabel.setText(accessToken.isEmpty() ? tr("እንግዳ ተጠቃሚ","Browsing as guest") : tr("ገብተዋል","Signed in"));
-        setContentView(root);
+        LinearLayout bottomNav = new LinearLayout(this);
+        bottomNav.setGravity(Gravity.CENTER); bottomNav.setPadding(dp(6),dp(6),dp(6),dp(6));
+        bottomNav.setBackgroundColor(Color.WHITE);
+        String[] navLabels = {"⌂  Home","▦  Categories","+  Sell","☺  Profile"};
+        for (int i=0;i<navLabels.length;i++) {
+            final int target=i; Button nav=button(navLabels[i],i==0); nav.setTextSize(11);
+            LinearLayout.LayoutParams navLp=new LinearLayout.LayoutParams(0,dp(48),1);
+            navLp.leftMargin=dp(2); navLp.rightMargin=dp(2); bottomNav.addView(nav,navLp);
+            nav.setOnClickListener(v -> {
+                if(target==0) scroll.smoothScrollTo(0,0);
+                else if(target==1) scroll.smoothScrollTo(0,categoriesTitle.getTop());
+                else if(target==2 && productName!=null) scroll.smoothScrollTo(0,productName.getTop());
+                else if(target==3 && accountLabel!=null) scroll.smoothScrollTo(0,accountLabel.getTop());
+            });
+        }
+        root.addView(bottomNav); setContentView(root);
     }
     private void openSocial(String url) {
         try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); }
@@ -342,38 +376,38 @@ public class MainActivity extends Activity {
         });
     }
     private void renderProducts() {
-        if(productList==null)return; productList.removeAllViews();
+        if(productList==null)return;
+        productList.removeAllViews();
         String q=search==null?"":search.getText().toString().toLowerCase(Locale.ROOT);
+        LinearLayout row=null; int column=0;
         for(JSONObject p:products){
             String name=p.optString("name"), cat=p.optString("category"), desc=p.optString("description");
             if(!(name+" "+cat+" "+desc).toLowerCase(Locale.ROOT).contains(q))continue;
-            LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(dp(14),dp(12),dp(14),dp(12));
-            card.setBackground(rounded(Color.WHITE, 20, Color.rgb(235,228,246)));
-            card.setElevation(dp(3));
-            String imageUrl = p.optString("image_url", "");
-            if (!imageUrl.isEmpty()) {
-                ImageView photo = new ImageView(this);
-                photo.setLayoutParams(new LinearLayout.LayoutParams(-1, dp(180)));
-                photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                card.addView(photo);
-                io.execute(() -> { try {
-                    Bitmap bitmap = BitmapFactory.decodeStream(new URL(imageUrl).openStream());
-                    if (bitmap != null) main.post(() -> photo.setImageBitmap(bitmap));
-                } catch (Exception ignored) {} });
-            }
-            TextView title=text(name,18,true,Color.rgb(20,40,70));card.addView(title);
-            card.addView(text(cat,12,false,Color.GRAY));
-            card.addView(text(String.format(Locale.US,"%,.0f ETB",p.optDouble("price")),19,true,Color.rgb(37,99,235)));
-            card.addView(text(desc,14,false,Color.rgb(76,91,113)));
-            card.addView(text(p.optString("seller_name"),13,false,Color.GRAY));
-            Button contact=button(tr("ሻጩን በWhatsApp ያግኙ","Contact seller on WhatsApp"),true);
+            if(column==0){ row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); productList.addView(row,new LinearLayout.LayoutParams(-1,-2)); }
+            LinearLayout card=new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL);
+            card.setPadding(dp(9),dp(9),dp(9),dp(10));
+            card.setBackground(rounded(Color.WHITE,18,Color.rgb(235,228,246))); card.setElevation(dp(2));
+            String imageUrl=p.optString("image_url","");
+            ImageView photo=new ImageView(this); photo.setLayoutParams(new LinearLayout.LayoutParams(-1,dp(122)));
+            photo.setScaleType(ImageView.ScaleType.CENTER_CROP); photo.setBackground(rounded(Color.rgb(245,240,252),12,0)); card.addView(photo);
+            if(!imageUrl.isEmpty()) io.execute(() -> { try {
+                Bitmap bitmap=BitmapFactory.decodeStream(new URL(imageUrl).openStream());
+                if(bitmap!=null)main.post(() -> photo.setImageBitmap(bitmap));
+            }catch(Exception ignored){} });
+            TextView title=text(name,14,true,Color.rgb(40,28,70)); title.setMaxLines(2); card.addView(title);
+            TextView categoryText=text(cat,10,false,Color.GRAY); categoryText.setMaxLines(1); card.addView(categoryText);
+            card.addView(text(String.format(Locale.US,"%,.0f ETB",p.optDouble("price")),15,true,Color.rgb(104,42,190)));
+            TextView sellerText=text(p.optString("seller_name"),10,false,Color.GRAY); sellerText.setMaxLines(1); card.addView(sellerText);
+            Button contact=button("WhatsApp",true); contact.setTextSize(11);
             String digits=p.optString("phone").replaceAll("[^0-9]","");
             contact.setOnClickListener(v->{try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://wa.me/"+digits)));}catch(Exception ignored){}});
             card.addView(contact);
-            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.bottomMargin=dp(14);
-            productList.addView(card,lp);
+            LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(0,-2,1);
+            cardLp.leftMargin=dp(4); cardLp.rightMargin=dp(4); cardLp.bottomMargin=dp(10); row.addView(card,cardLp);
+            column++; if(column==2)column=0;
         }
-        if(productList.getChildCount()==0)productList.addView(text(tr("ምርት አልተገኘም።","No products found."),14,false,Color.GRAY));
+        if(column==1 && row!=null){ View spacer=new View(this); row.addView(spacer,new LinearLayout.LayoutParams(0,dp(1),1)); }
+        if(productList.getChildCount()==0) productList.addView(text(tr("ምርት አልተገኘም።","No products found."),14,false,Color.GRAY));
     }
     @Override protected void onDestroy(){super.onDestroy();io.shutdownNow();}
 }
