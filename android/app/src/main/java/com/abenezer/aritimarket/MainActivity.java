@@ -2,236 +2,228 @@ package com.abenezer.aritimarket;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
-import android.webkit.CookieManager;
-import android.webkit.SslErrorHandler;
-import android.net.http.SslError;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
-    private static final int FILE_PICKER_REQUEST = 4102;
-    private static final String HOME = "https://abeni85364482.github.io/Writing-market-/";
-    private static final String HOME_HOST = "abeni85364482.github.io";
+    private static final String API = "https://uuuiysoowojsqytgdnoo.supabase.co";
+    private static final String KEY = "sb_publishable_klraPqTbuK72dLJCirpIxg_qlPL1522";
+    private static final String PREFS = "ariti_session";
+    private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private final Handler main = new Handler(Looper.getMainLooper());
+    private final ArrayList<JSONObject> products = new ArrayList<>();
+    private LinearLayout root, content, productList;
+    private EditText search, email, password, productName, price, category, seller, phone, description;
+    private TextView message, accountLabel;
+    private boolean amharic = true;
+    private String accessToken = "";
+    private String userId = "";
 
-    private WebView webView;
-    private View errorView;
-    private android.webkit.ValueCallback<Uri[]> fileCallback;
+    @Override public void onCreate(Bundle state) {
+        super.onCreate(state);
+        SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
+        accessToken = p.getString("access_token", "");
+        userId = p.getString("user_id", "");
+        buildScreen();
+        loadProducts();
+    }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    private String tr(String am, String en) { return amharic ? am : en; }
+    private int dp(float v) { return (int)(v * getResources().getDisplayMetrics().density + .5f); }
 
-        FrameLayout root = new FrameLayout(this);
-        webView = new WebView(this);
-        root.addView(webView, new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT));
+    private TextView text(String value, int size, boolean bold, int color) {
+        TextView v = new TextView(this);
+        v.setText(value); v.setTextSize(size); v.setTextColor(color);
+        if (bold) v.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        v.setPadding(dp(2), dp(5), dp(2), dp(5));
+        return v;
+    }
+    private EditText field(String hint, int inputType) {
+        EditText e = new EditText(this);
+        e.setSingleLine(inputType != 0);
+        e.setHint(hint); e.setTextSize(15); e.setTextColor(Color.rgb(24,35,54));
+        e.setHintTextColor(Color.GRAY); e.setInputType(inputType);
+        e.setPadding(dp(12), dp(8), dp(12), dp(8));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(48));
+        lp.bottomMargin = dp(8); e.setLayoutParams(lp);
+        return e;
+    }
+    private Button button(String label, boolean primary) {
+        Button b = new Button(this); b.setText(label); b.setAllCaps(false);
+        b.setTextColor(primary ? Color.WHITE : Color.rgb(25,50,90));
+        b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                primary ? Color.rgb(37,99,235) : Color.rgb(232,239,250)));
+        return b;
+    }
+    private void buildScreen() {
+        root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.rgb(245,247,251));
+        LinearLayout header = new LinearLayout(this); header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(dp(16), dp(12), dp(12), dp(12));
+        header.setBackgroundColor(Color.rgb(16,29,53));
+        TextView brand = text("ARITI MARKET", 21, true, Color.WHITE);
+        header.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
+        Button language = button("አማ / EN", false);
+        header.addView(language); language.setOnClickListener(v -> {
+            amharic = !amharic; buildScreen(); loadProducts();
+        });
+        root.addView(header);
+        ScrollView scroll = new ScrollView(this);
+        content = new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(16), dp(14), dp(16), dp(24));
+        scroll.addView(content); root.addView(scroll, new LinearLayout.LayoutParams(-1,0,1));
+        TextView hero = text(tr("በቀላሉ ይግዙ፣ ይሽጡ።","Buy and sell with ease."), 24, true, Color.WHITE);
+        hero.setPadding(dp(18),dp(22),dp(18),dp(22));
+        hero.setBackgroundColor(Color.rgb(24,70,137)); content.addView(hero);
+        TextView sub = text(tr("ምርቶችን ይፈልጉ፣ ያስታውቁ፣ ከሻጮች ጋር ይገናኙ።","Discover products, post listings and contact sellers."),14,false,Color.rgb(76,91,113));
+        content.addView(sub);
+        search = field(tr("ምርት ፈልግ…","Search products…"), 0); content.addView(search);
+        search.addTextChangedListener(new android.text.TextWatcher() {
+            public void beforeTextChanged(CharSequence s,int st,int c,int a){}
+            public void onTextChanged(CharSequence s,int st,int before,int count){ renderProducts(); }
+            public void afterTextChanged(android.text.Editable e){}
+        });
+        accountLabel = text("", 16, true, Color.rgb(25,50,90)); content.addView(accountLabel);
+        buildAuthAndPost();
+        message = text("", 13, false, Color.rgb(180,55,45)); content.addView(message);
+        TextView section = text(tr("የቅርብ ጊዜ ምርቶች","Latest products"),20,true,Color.rgb(20,35,58));
+        content.addView(section);
+        productList = new LinearLayout(this); productList.setOrientation(LinearLayout.VERTICAL);
+        content.addView(productList);
+        accountLabel.setText(accessToken.isEmpty() ? tr("እንግዳ ተጠቃሚ","Browsing as guest") : tr("ገብተዋል","Signed in"));
         setContentView(root);
-
-        WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(false);
-        settings.setAllowContentAccess(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(false);
-        settings.setSupportMultipleWindows(false);
-        settings.setLoadsImagesAutomatically(true);
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-
-        CookieManager cookies = CookieManager.getInstance();
-        cookies.setAcceptCookie(true);
-        cookies.setAcceptThirdPartyCookies(webView, true);
-
-        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
-        webView.setBackgroundColor(Color.rgb(243, 245, 249));
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                return handleUrl(request.getUrl());
-            }
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return handleUrl(Uri.parse(url));
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
-                hideError();
-            }
-
-            @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && request.isForMainFrame()) {
-                    showError();
-                }
-            }
-
-            @Override
-            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                handler.cancel();
-                showError();
-            }
-        });
-
-        webView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public boolean onShowFileChooser(WebView view,
-                    android.webkit.ValueCallback<Uri[]> callback,
-                    WebChromeClient.FileChooserParams params) {
-                if (fileCallback != null) fileCallback.onReceiveValue(null);
-                fileCallback = callback;
-
-                Intent intent;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    String[] accepted = params.getAcceptTypes();
-                    String mime = "image/*";
-                    if (accepted != null && accepted.length > 0 && accepted[0] != null
-                            && !accepted[0].trim().isEmpty()) {
-                        mime = accepted[0];
-                    }
-                    intent.setType(mime);
-                    intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*"});
-                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, params.getMode()
-                            == FileChooserParams.MODE_OPEN_MULTIPLE);
-                } else {
-                    intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.setType("image/*");
-                }
-
-                try {
-                    startActivityForResult(Intent.createChooser(intent, "Select product photo"),
-                            FILE_PICKER_REQUEST);
-                    return true;
-                } catch (ActivityNotFoundException e) {
-                    fileCallback = null;
-                    return false;
-                }
-            }
-        });
-
-        if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
-            webView.loadUrl(HOME);
-        }
     }
-
-    private boolean handleUrl(Uri uri) {
-        String scheme = uri.getScheme();
-        String host = uri.getHost();
-        if ("https".equalsIgnoreCase(scheme) && host != null
-                && (host.equals(HOME_HOST) || host.equals("supabase.co")
-                || host.endsWith(".supabase.co"))) {
-            return false;
-        }
-
+    private void buildAuthAndPost() {
+        TextView authTitle = text(tr("መለያ","Account"),18,true,Color.rgb(20,35,58)); content.addView(authTitle);
+        email = field("Email", 33); password = field(tr("የይለፍ ቃል","Password"), 129); content.addView(email); content.addView(password);
+        LinearLayout authButtons = new LinearLayout(this); authButtons.setOrientation(LinearLayout.HORIZONTAL);
+        Button signIn = button(tr("ግባ","Sign in"),true);
+        Button signUp = button(tr("ተመዝገብ","Sign up"),false);
+        authButtons.addView(signIn,new LinearLayout.LayoutParams(0,-2,1));
+        authButtons.addView(signUp,new LinearLayout.LayoutParams(0,-2,1)); content.addView(authButtons);
+        signIn.setOnClickListener(v -> authenticate(false)); signUp.setOnClickListener(v -> authenticate(true));
+        Button signOut = button(tr("ውጣ","Sign out"),false);
+        signOut.setOnClickListener(v -> { accessToken="";userId="";getSharedPreferences(PREFS,MODE_PRIVATE).edit().clear().apply();buildScreen();loadProducts(); });
+        content.addView(signOut);
+        TextView postTitle = text(tr("ምርት ይለጥፉ","Post a product"),18,true,Color.rgb(20,35,58)); content.addView(postTitle);
+        productName = field(tr("የምርት ስም","Product name"),0);
+        price = field(tr("ዋጋ (ETB)","Price (ETB)"),8194);
+        category = field(tr("ምድብ","Category"),0);
+        seller = field(tr("የሻጭ ስም","Seller name"),0);
+        phone = field(tr("ስልክ ቁጥር","Phone number"),3);
+        description = field(tr("የምርት መግለጫ","Product description"),0);
+        for(EditText e:new EditText[]{productName,price,category,seller,phone,description}) content.addView(e);
+        Button publish = button(tr("አሳትም","Publish listing"),true); content.addView(publish);
+        publish.setOnClickListener(v -> publishProduct());
+    }
+    private void authenticate(boolean signup) {
+        String em=email.getText().toString().trim(), pw=password.getText().toString();
+        if(em.isEmpty() || pw.length()<6){ message.setText(tr("ኢሜይልና ቢያንስ 6 ፊደል ያለው የይለፍ ቃል ያስገቡ።","Enter email and a password of at least 6 characters.")); return; }
+        io.execute(() -> {
+            try {
+                JSONObject body=new JSONObject(); body.put("email",em); body.put("password",pw);
+                String path=signup?"/auth/v1/signup":"/auth/v1/token?grant_type=password";
+                JSONObject result=request("POST",path,body,null);
+                String token=result.optString("access_token","");
+                JSONObject u=result.optJSONObject("user");
+                if(token.isEmpty() && u!=null) {
+                    main.post(() -> message.setText(tr("ምዝገባው ተልኳል። ኢሜይልዎን ያረጋግጡ።","Sign-up submitted. Check your email to confirm.")));
+                    return;
+                }
+                if(token.isEmpty()) throw new Exception("No session returned. Confirm your email, then sign in.");
+                String id=u==null?"":u.optString("id","");
+                accessToken=token; userId=id;
+                getSharedPreferences(PREFS,MODE_PRIVATE).edit().putString("access_token",token).putString("user_id",id).apply();
+                main.post(() -> { message.setText(tr("በተሳካ ሁኔታ ገብተዋል።","Signed in successfully.")); accountLabel.setText(tr("ገብተዋል","Signed in")); });
+            } catch(Exception ex){ main.post(() -> message.setText(ex.getMessage())); }
+        });
+    }
+    private void publishProduct() {
+        if(accessToken.isEmpty()){ message.setText(tr("ምርት ለመለጠፍ መጀመሪያ ይግቡ።","Please sign in before posting.")); return; }
         try {
-            if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)
-                    || "mailto".equalsIgnoreCase(scheme) || "tel".equalsIgnoreCase(scheme)
-                    || "whatsapp".equalsIgnoreCase(scheme)) {
-                startActivity(new Intent(Intent.ACTION_VIEW, uri));
-            }
-        } catch (ActivityNotFoundException ignored) {
-        }
-        return true;
+            JSONObject p=new JSONObject(); p.put("user_id",userId);
+            p.put("name",productName.getText().toString().trim());
+            p.put("price",Double.parseDouble(price.getText().toString().trim()));
+            p.put("category",category.getText().toString().trim());
+            p.put("seller_name",seller.getText().toString().trim());
+            p.put("phone",phone.getText().toString().trim());
+            p.put("description",description.getText().toString().trim());
+            if(p.optString("name").isEmpty()||p.optString("seller_name").isEmpty()||p.optString("phone").isEmpty()) throw new Exception("Complete product, seller and phone fields.");
+            io.execute(() -> { try { request("POST","/rest/v1/products",p,null); main.post(() -> { message.setText(tr("ምርቱ ተለጥፏል።","Product published.")); loadProducts(); }); } catch(Exception ex){ main.post(() -> message.setText(ex.getMessage())); }});
+        } catch(Exception ex){ message.setText(tr("ዋጋውን በትክክል ያስገቡ።","Enter a valid price.")); }
     }
-
-    private void showError() {
-        if (errorView != null) return;
-        LinearLayout panel = new LinearLayout(this);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setGravity(Gravity.CENTER);
-        panel.setPadding(32, 32, 32, 32);
-        panel.setBackgroundColor(Color.rgb(243, 245, 249));
-
-        TextView title = new TextView(this);
-        title.setText("ARITI MARKET");
-        title.setTextColor(Color.rgb(16, 28, 50));
-        title.setTextSize(24);
-        title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 12);
-        panel.addView(title);
-
-        TextView message = new TextView(this);
-        message.setText("Connection problem. Please check your internet and try again.");
-        message.setTextColor(Color.rgb(70, 80, 100));
-        message.setTextSize(16);
-        message.setGravity(Gravity.CENTER);
-        message.setPadding(0, 0, 0, 20);
-        panel.addView(message);
-
-        Button retry = new Button(this);
-        retry.setText("Try again");
-        retry.setOnClickListener(v -> {
-            hideError();
-            webView.loadUrl(HOME);
+    private JSONObject request(String method,String path,JSONObject body,String query) throws Exception {
+        URL url=new URL(API+path+(query==null?"":query));
+        HttpURLConnection c=(HttpURLConnection)url.openConnection();
+        c.setRequestMethod(method); c.setConnectTimeout(15000); c.setReadTimeout(20000);
+        c.setRequestProperty("apikey",KEY);
+        c.setRequestProperty("Authorization","Bearer "+(accessToken.isEmpty()?KEY:accessToken));
+        c.setRequestProperty("Content-Type","application/json");
+        c.setRequestProperty("Accept","application/json");
+        if(body!=null){ c.setDoOutput(true); c.setRequestProperty("Prefer","return=minimal"); try(OutputStream os=c.getOutputStream()){os.write(body.toString().getBytes(StandardCharsets.UTF_8));}}
+        int code=c.getResponseCode(); InputStream stream=code>=200&&code<300?c.getInputStream():c.getErrorStream();
+        ByteArrayOutputStream out=new ByteArrayOutputStream(); if(stream!=null){byte[] b=new byte[4096];int n;while((n=stream.read(b))!=-1)out.write(b,0,n);stream.close();}
+        String raw=out.toString("UTF-8"); c.disconnect();
+        if(code<200||code>=300) throw new Exception(raw.isEmpty()?"Request failed ("+code+")":raw);
+        return raw.isEmpty()?new JSONObject():new JSONObject(raw);
+    }
+    private void loadProducts() {
+        if(productList==null)return;
+        io.execute(() -> {
+            try {
+                URL url=new URL(API+"/rest/v1/products?select=*&order=created_at.desc");
+                HttpURLConnection c=(HttpURLConnection)url.openConnection();
+                c.setConnectTimeout(15000);c.setReadTimeout(20000);
+                c.setRequestProperty("apikey",KEY);c.setRequestProperty("Authorization","Bearer "+(accessToken.isEmpty()?KEY:accessToken));
+                int code=c.getResponseCode(); if(code<200||code>=300)throw new Exception("Products unavailable ("+code+")");
+                ByteArrayOutputStream out=new ByteArrayOutputStream();try(InputStream in=c.getInputStream()){byte[] b=new byte[4096];int n;while((n=in.read(b))!=-1)out.write(b,0,n);}
+                JSONArray arr=new JSONArray(out.toString("UTF-8")); products.clear();for(int i=0;i<arr.length();i++)products.add(arr.getJSONObject(i));c.disconnect();
+                main.post(this::renderProducts);
+            } catch(Exception ex){ main.post(() -> { if(message!=null)message.setText(tr("ምርቶችን ማምጣት አልተቻለም። ኢንተርኔትን ያረጋግጡ።","Could not load products. Check your internet connection.")); }); }
         });
-        panel.addView(retry);
-
-        errorView = panel;
-        ((FrameLayout) webView.getParent()).addView(errorView,
-                new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT));
     }
-
-    private void hideError() {
-        if (errorView != null) {
-            ((FrameLayout) errorView.getParent()).removeView(errorView);
-            errorView = null;
+    private void renderProducts() {
+        if(productList==null)return; productList.removeAllViews();
+        String q=search==null?"":search.getText().toString().toLowerCase(Locale.ROOT);
+        for(JSONObject p:products){
+            String name=p.optString("name"), cat=p.optString("category"), desc=p.optString("description");
+            if(!(name+" "+cat+" "+desc).toLowerCase(Locale.ROOT).contains(q))continue;
+            LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(dp(14),dp(12),dp(14),dp(12));
+            card.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.WHITE));
+            TextView title=text(name,18,true,Color.rgb(20,40,70));card.addView(title);
+            card.addView(text(cat,12,false,Color.GRAY));
+            card.addView(text(String.format(Locale.US,"%,.0f ETB",p.optDouble("price")),19,true,Color.rgb(37,99,235)));
+            card.addView(text(desc,14,false,Color.rgb(76,91,113)));
+            card.addView(text(p.optString("seller_name"),13,false,Color.GRAY));
+            Button contact=button(tr("ሻጩን በWhatsApp ያግኙ","Contact seller on WhatsApp"),true);
+            String digits=p.optString("phone").replaceAll("[^0-9]","");
+            contact.setOnClickListener(v->{try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://wa.me/"+digits)));}catch(Exception ignored){}});
+            card.addView(contact);
+            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.bottomMargin=dp(12);
+            productList.addView(card,lp);
         }
+        if(productList.getChildCount()==0)productList.addView(text(tr("ምርት አልተገኘም።","No products found."),14,false,Color.GRAY));
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILE_PICKER_REQUEST && fileCallback != null) {
-            Uri[] result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
-            fileCallback.onReceiveValue(result);
-            fileCallback = null;
-        }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (webView != null) webView.saveState(outState);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) webView.goBack();
-        else super.onBackPressed();
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (fileCallback != null) {
-            fileCallback.onReceiveValue(null);
-            fileCallback = null;
-        }
-        if (webView != null) {
-            webView.stopLoading();
-            webView.destroy();
-            webView = null;
-        }
-        super.onDestroy();
-    }
+    @Override protected void onDestroy(){super.onDestroy();io.shutdownNow();}
 }
