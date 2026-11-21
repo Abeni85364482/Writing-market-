@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://abeni85364482.github.io/Writing-market-/sitemap.xml
