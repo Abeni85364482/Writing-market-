@@ -151,8 +151,24 @@ public class MainActivity extends Activity {
         content.addView(section);
         productList = new LinearLayout(this); productList.setOrientation(LinearLayout.VERTICAL);
         content.addView(productList);
+        TextView socialTitle = text(tr("ከእኛ ጋር በሶሻል ሚዲያ ይገናኙ","Connect with us on social media"),17,true,Color.rgb(20,35,58));
+        content.addView(socialTitle);
+        LinearLayout socialRow = new LinearLayout(this);
+        socialRow.setOrientation(LinearLayout.VERTICAL);
+        Button facebook = button("Facebook", false);
+        facebook.setOnClickListener(v -> openSocial("https://www.facebook.com/share/1Cuk1FjurR/?mibextid=wwXIfr"));
+        Button tiktok = button("TikTok", false);
+        tiktok.setOnClickListener(v -> openSocial("https://www.tiktok.com/@abenezer67"));
+        Button instagram = button("Instagram", false);
+        instagram.setOnClickListener(v -> openSocial("https://www.instagram.com/abe-nuda/"));
+        socialRow.addView(facebook); socialRow.addView(tiktok); socialRow.addView(instagram);
+        content.addView(socialRow);
         accountLabel.setText(accessToken.isEmpty() ? tr("እንግዳ ተጠቃሚ","Browsing as guest") : tr("ገብተዋል","Signed in"));
         setContentView(root);
+    }
+    private void openSocial(String url) {
+        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); }
+        catch (Exception ex) { if (message != null) message.setText("Could not open link."); }
     }
     private void buildAuthAndPost() {
         TextView authTitle = text(tr("መለያ","Account"),18,true,Color.rgb(20,35,58)); content.addView(authTitle);
