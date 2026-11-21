@@ -1,8 +1,65 @@
 <!doctype html><html lang="am"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ARITI MARKET</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f3f5f9;color:#182235;font-family:Arial,sans-serif}header{background:#101c32;color:white;padding:18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}main{max-width:1000px;margin:22px auto;padding:0 14px}.hero,.panel,.item{background:white;border-radius:14px;padding:18px;margin-bottom:16px}.hero{background:linear-gradient(120deg,#173d78,#1769df);color:white}button{background:#1769df;color:white;border:0;border-radius:9px;padding:11px 15px;font-weight:bold}button.alt{background:#e8edf6;color:#172235}input,textarea,select{width:100%;padding:12px;margin:6px 0 12px;border:1px solid #ccd4e1;border-radius:9px;font:inherit}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.item{padding:0;overflow:hidden}.item img{width:100%;height:170px;object-fit:cover}.body{padding:13px}.price{color:#1769df;font-weight:bold;font-size:19px}.muted{color:#667085;font-size:13px}.hidden{display:none}.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}.admin-list{display:grid;gap:9px}.admin-entry{border:1px solid #e1e6ef;border-radius:10px;padding:11px;display:flex;justify-content:space-between;align-items:center;gap:10px}.admin-entry button{background:#c62828;white-space:nowrap}.stats{display:flex;gap:10px;flex-wrap:wrap}.promoted{display:inline-block;background:#fff0c2;color:#805400;border-radius:6px;padding:4px 7px;font-size:12px;font-weight:bold}.ad-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.ad-actions button{font-size:12px;padding:9px}.stat{background:#eef4ff;padding:12px 16px;border-radius:10px;min-width:120px}.stat b{display:block;font-size:22px;color:#1769df}
+
+/* ARITI MARKET visual refresh */
+:root{--navy:#101d35;--blue:#2563eb;--gold:#f4b942;--ink:#17243b;--muted:#66758c}
+body{background:linear-gradient(180deg,#edf3ff 0,#f7f9fc 360px,#f7f9fc 100%);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+header{background:rgba(13,27,51,.97);backdrop-filter:blur(12px);padding:13px max(16px,calc((100% - 1080px)/2));gap:12px;box-shadow:0 8px 28px #0c1b3526;z-index:20}
+header>div:first-child b{font-size:20px;letter-spacing:.4px;color:#fff}
+header>div:first-child b:after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-left:7px;vertical-align:middle}
+header .row{gap:7px;flex-wrap:wrap}
+header button{padding:9px 12px;font-size:13px}
+main{max-width:1080px;margin:26px auto;padding:0 18px}
+.hero{position:relative;overflow:hidden;isolation:isolate;min-height:205px;padding:32px 30px;border-radius:22px;background:linear-gradient(118deg,#10264a 0%,#174a91 55%,#2877e8 100%);box-shadow:0 18px 38px #174a9130}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;z-index:-1;border:1px solid #ffffff24}
+.hero:before{width:270px;height:270px;right:-55px;top:-120px;box-shadow:0 0 0 24px #ffffff08,0 0 0 54px #ffffff06}
+.hero:after{width:130px;height:130px;right:125px;bottom:-90px;background:#ffffff0a}
+.hero h2{font-size:clamp(23px,4vw,34px);line-height:1.25;max-width:650px;margin:0 0 12px}
+.hero p{font-size:15px;line-height:1.8;color:#e4edff;max-width:580px;margin:0}
+.panel{border:1px solid #e7ecf4;border-radius:17px;padding:20px;box-shadow:0 7px 24px #172b4d08}
+.panel h3{margin:0 0 14px;font-size:19px}
+button{background:linear-gradient(135deg,#2563eb,#1c50c7);border-radius:10px;box-shadow:0 4px 10px #2563eb20;transition:transform .16s,box-shadow .16s}
+button:active{transform:scale(.97)}
+button.alt{background:#edf2fa;color:#263650;box-shadow:none}
+input,textarea,select{background:#fbfcff;border-color:#dce4f0;border-radius:10px;min-height:44px}
+input:focus,textarea:focus,select:focus{outline:2px solid #93b4ff;border-color:#4c83f2}
+.category-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 5px;scrollbar-width:thin}.category-chips button{white-space:nowrap;font-size:13px;padding:9px 12px;box-shadow:none}#search{max-width:340px;margin:0}
+#products{gap:18px}
+.item{border:1px solid #e7ecf4;border-radius:17px;box-shadow:0 8px 24px #172b4d0d;transition:transform .18s,box-shadow .18s}
+.item:hover{transform:translateY(-3px);box-shadow:0 14px 30px #172b4d16}
+.item img{height:190px;background:#edf2fa}
+.item .body{padding:16px}
+.item h3{margin:7px 0;font-size:18px}
+.item p{color:#52627a;line-height:1.55;font-size:14px}
+.price{color:#1458d4;font-size:21px;margin:7px 0}
+.muted{color:var(--muted)}
+.promoted{background:#fff3cf;color:#805300;border:1px solid #f5dfa0}
+.stat{border:1px solid #dce8ff;background:linear-gradient(135deg,#f2f7ff,#e7f0ff)}
+footer{margin-top:35px!important;background:#101d35;color:#c8d4e8!important}
+@media(max-width:650px){
+ header{position:sticky;display:flex;align-items:flex-start;flex-wrap:wrap;padding:12px 13px}
+ header>div:first-child{width:100%}
+ header .row{width:100%;justify-content:space-between}
+ header .row button{font-size:12px;padding:9px 8px;flex:1;white-space:nowrap}
+ main{margin:16px auto;padding:0 12px}
+ .hero{padding:25px 20px;min-height:185px;border-radius:18px}
+ .panel{padding:16px;border-radius:15px}
+ .row{gap:7px}
+ .row>*{min-width:0}
+ #products{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .item img{height:125px}
+ .item .body{padding:10px}
+ .item h3{font-size:15px}
+ .item p{font-size:12px}
+ .price{font-size:17px}
+ .item .body button{font-size:11px;padding:9px 8px}
+ .promoted{font-size:10px}
+ .admin-entry{align-items:flex-start;flex-wrap:wrap}
+}
+@media(max-width:360px){#products{grid-template-columns:1fr}}
 </style></head><body><header><div><b>🛍️ ARITI MARKET</b><div style="font-size:12px">ገዛና ሽጥ — Buy & Sell</div></div><div class="row" style="flex:0"><button class="alt" id="homeNav">Home</button><button class="alt" id="postNav">Post product</button><button class="alt" id="language">English</button><button id="account">ግባ</button></div></header><main>
 <section class="hero"><h2 id="welcome">ወደ ARITI MARKET እንኳን በደህና መጡ!</h2><p id="intro">ምርቶችን ይፈልጉ፣ ያስታውቁ፣ ከሻጩ ጋር በቀጥታ ይገናኙ።</p></section>
-<section class="panel hidden" id="auth"><h3>Account / መለያ</h3><input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><button id="signin">ግባ / Sign in</button> <button class="alt" id="signup">መለያ ፍጠር / Sign up</button> <button class="alt" id="forgot">Forgot password / የይለፍ ቃል ረሳሁ</button><button class="alt hidden" id="signout">ውጣ / Sign out</button><p id="authmsg" class="muted"></p></section>
+<section class="panel" style="padding:13px 16px"><div style="font-weight:700;margin-bottom:10px">🔎 በምድብ ይፈልጉ / Browse categories</div><div class="category-chips"><button class="alt" data-cat="">ሁሉም / All</button><button class="alt" data-cat="Electronics">📱 Electronics</button><button class="alt" data-cat="Vehicles">🚗 Vehicles</button><button class="alt" data-cat="Real Estate">🏠 Real Estate</button><button class="alt" data-cat="Clothing">👕 Clothing</button><button class="alt" data-cat="Home">🛋️ Home</button><button class="alt" data-cat="Food">🍎 Food</button></div></section>\n<section class="panel hidden" id="auth"><h3>Account / መለያ</h3><input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><button id="signin">ግባ / Sign in</button> <button class="alt" id="signup">መለያ ፍጠር / Sign up</button> <button class="alt" id="forgot">Forgot password / የይለፍ ቃል ረሳሁ</button><button class="alt hidden" id="signout">ውጣ / Sign out</button><p id="authmsg" class="muted"></p></section>
 <section class="panel hidden" id="resetPanel"><h3>Reset password / የይለፍ ቃል ቀይር</h3><p class="muted">Enter your new password below / አዲሱን የይለፍ ቃል ከታች ያስገቡ።</p><input id="newPassword" type="password" minlength="8" autocomplete="new-password" placeholder="New password / አዲስ የይለፍ ቃል"><input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Confirm new password / ደግመው ያስገቡ"><button id="updatePassword">Update password / የይለፍ ቃል አዘምን</button><p id="resetMsg" class="muted"></p></section>
 <section class="panel hidden" id="post"><h3 id="posttitle">ምርት ይለጥፉ / Post a product</h3><input id="name" placeholder="የምርት ስም / Product name"><div class="row"><input id="price" type="number" placeholder="ዋጋ / Price (ETB)"><select id="category"><option>Electronics</option><option>Clothing</option><option>Home</option><option>Vehicles</option><option>Real Estate</option><option>Food</option><option>Other</option></select></div><div class="row"><input id="seller" placeholder="የሻጭ ስም / Seller name"><input id="phone" placeholder="ስልክ / WhatsApp"></div><input id="photo" type="file" accept="image/png,image/jpeg,image/webp"><textarea id="description" placeholder="መግለጫ / Description"></textarea><button id="publish">አሳትም / Publish</button><p id="postmsg" class="muted"></p></section>
 <section class="panel hidden" id="adPanel"><h3>⭐ ማስታወቂያ አድርግ / Promote your product</h3><p>100 ብር ለ30 ቀን። በCBE ወይም Telebirr ይክፈሉ፤ የግብይት ማረጋገጫ ቁጥሩን ያስገቡ።</p><div style="background:#eef4ff;padding:13px;border-radius:10px"><b>CBE Bank</b><div>Account: <b>1000100981215</b></div><div>Account holder: <b>Abenezer Solomon</b></div><hr><b>Telebirr</b><div>ስልክ ቁጥር / Number: <b>0921208824</b></div><div>የክፍያ መጠን / Amount: <b>100 ETB</b></div><div>Duration: <b>30 days</b></div></div><input id="adProductId" type="hidden"><label for="adMethod">የክፍያ መንገድ / Payment method</label><select id="adMethod"><option value="CBE">CBE Bank</option><option value="Telebirr">Telebirr</option></select><label for="adReference">የግብይት ማረጋገጫ ቁጥር / Transaction reference</label><input id="adReference" placeholder="የክፍያ ማረጋገጫ ቁጥር"><button id="submitAd">የማስታወቂያ ጥያቄ ላክ / Submit ad request</button> <button class="alt" id="cancelAd">Cancel</button><p id="adMsg" class="muted"></p><h4>የእኔ ማስታወቂያ ጥያቄዎች</h4><div id="myAds" class="admin-list"></div></section><section class="panel hidden" id="admin"><h3>🛡️ Admin Dashboard / የአስተዳዳሪ ቁጥጥር</h3><div class="stats"><div class="stat"><span>All products / ጠቅላላ ምርቶች</span><b id="adminCount">0</b></div><div class="stat"><span>Account / መለያ</span><b style="font-size:14px" id="adminEmail">Admin</b></div></div><h4>Manage listings / ምርቶችን ተቆጣጠር</h4><div class="admin-list" id="adminList"></div><h4>የማስታወቂያ ክፍያዎች / Ad payment requests</h4><div id="adAdminList" class="admin-list"></div><p class="muted" id="adminMsg">Only your admin account can see these controls.</p></section><section class="panel"><div class="row"><h3>ምርቶች / Products</h3><input id="search" placeholder="Search / ፈልግ"></div></section><section class="grid" id="products">Loading…</section></main><footer style="text-align:center;padding:25px;color:#667085">ARITI MARKET · Ethiopia</footer>
