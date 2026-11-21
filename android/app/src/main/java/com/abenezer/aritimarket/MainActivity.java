@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
+import android.graphics.drawable.GradientDrawable;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -102,26 +103,46 @@ public class MainActivity extends Activity {
         e.setSingleLine(inputType != 0);
         e.setHint(hint); e.setTextSize(15); e.setTextColor(Color.rgb(24,35,54));
         e.setHintTextColor(Color.GRAY); e.setInputType(inputType);
-        e.setPadding(dp(12), dp(8), dp(12), dp(8));
+        e.setPadding(dp(14), dp(8), dp(14), dp(8));
+        e.setBackground(rounded(Color.WHITE, 14, Color.rgb(230,222,244)));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(48));
         lp.bottomMargin = dp(8); e.setLayoutParams(lp);
         return e;
     }
+    private GradientDrawable rounded(int color, int radius, int stroke) {
+        GradientDrawable d = new GradientDrawable();
+        d.setColor(color); d.setCornerRadius(dp(radius));
+        if (stroke != 0) d.setStroke(dp(1), stroke);
+        return d;
+    }
     private Button button(String label, boolean primary) {
         Button b = new Button(this); b.setText(label); b.setAllCaps(false);
-        b.setTextColor(primary ? Color.WHITE : Color.rgb(25,50,90));
-        b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                primary ? Color.rgb(37,99,235) : Color.rgb(232,239,250)));
+        b.setTextSize(14); b.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        b.setTextColor(primary ? Color.WHITE : Color.rgb(76,42,155));
+        if (primary) {
+            GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+                    new int[]{Color.rgb(81,35,190), Color.rgb(137,55,220), Color.rgb(245,145,35)});
+            g.setCornerRadius(dp(18)); b.setBackground(g);
+        } else {
+            b.setBackground(rounded(Color.rgb(246,241,255), 18, Color.rgb(225,211,250)));
+        }
+        b.setPadding(dp(14), dp(8), dp(14), dp(8));
+        b.setElevation(dp(2));
         return b;
     }
     private void buildScreen() {
         root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.rgb(245,247,251));
+        root.setBackgroundColor(Color.rgb(248,246,252));
         LinearLayout header = new LinearLayout(this); header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(dp(16), dp(12), dp(12), dp(12));
-        header.setBackgroundColor(Color.rgb(16,29,53));
-        TextView brand = text("ARITI MARKET", 21, true, Color.WHITE);
-        header.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
+        header.setPadding(dp(18), dp(14), dp(14), dp(14));
+        GradientDrawable headerBg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{Color.rgb(53,20,135), Color.rgb(101,43,194)});
+        headerBg.setCornerRadius(dp(0)); header.setBackground(headerBg);
+        LinearLayout brandBlock = new LinearLayout(this); brandBlock.setOrientation(LinearLayout.VERTICAL);
+        TextView brand = text("🛍 ARITI", 22, true, Color.WHITE);
+        TextView market = text("MARKET  •  SHOP  •  SELL  •  CONNECT", 10, true, Color.rgb(255,190,75));
+        brandBlock.addView(brand); brandBlock.addView(market);
+        header.addView(brandBlock, new LinearLayout.LayoutParams(0, -2, 1));
         Button language = button(languageIndex == 0 ? "አማርኛ ▾" : languageIndex == 1 ? "English ▾" : "Afaan Oromoo ▾", false);
         header.addView(language); language.setOnClickListener(v -> {
             languageIndex = (languageIndex + 1) % 3;
@@ -131,41 +152,55 @@ public class MainActivity extends Activity {
         root.addView(header);
         ScrollView scroll = new ScrollView(this);
         content = new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(16), dp(14), dp(16), dp(24));
+        content.setPadding(dp(16), dp(16), dp(16), dp(28));
         scroll.addView(content); root.addView(scroll, new LinearLayout.LayoutParams(-1,0,1));
-        TextView hero = text(tr("በቀላሉ ይግዙ፣ ይሽጡ።","Buy and sell with ease."), 24, true, Color.WHITE);
-        hero.setPadding(dp(18),dp(22),dp(18),dp(22));
-        hero.setBackgroundColor(Color.rgb(24,70,137)); content.addView(hero);
-        TextView sub = text(tr("ምርቶችን ይፈልጉ፣ ያስታውቁ፣ ከሻጮች ጋር ይገናኙ።","Discover products, post listings and contact sellers."),14,false,Color.rgb(76,91,113));
-        content.addView(sub);
-        search = field(tr("ምርት ፈልግ…","Search products…"), 0); content.addView(search);
+
+        LinearLayout hero = new LinearLayout(this); hero.setOrientation(LinearLayout.VERTICAL);
+        hero.setPadding(dp(20), dp(22), dp(20), dp(22));
+        GradientDrawable heroBg = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                new int[]{Color.rgb(74,29,169), Color.rgb(120,49,205), Color.rgb(244,139,42)});
+        heroBg.setCornerRadius(dp(24)); hero.setBackground(heroBg); hero.setElevation(dp(4));
+        TextView heroTag = text("YOUR EVERYDAY MARKETPLACE", 11, true, Color.rgb(255,213,120));
+        TextView heroTitle = text(tr("በቀላሉ ይግዙ፣ ይሽጡ።","BUY SMART. SELL EASY."), 25, true, Color.WHITE);
+        TextView heroSub = text(tr("ምርቶችን ይፈልጉ፣ ያስታውቁ፣ ከሻጮች ጋር ይገናኙ።","Discover products, post listings and connect with sellers."), 14, false, Color.WHITE);
+        hero.addView(heroTag); hero.addView(heroTitle); hero.addView(heroSub);
+        content.addView(hero);
+        TextView quick = text("🛒  Browse     📦  Sell     🤝  Connect", 13, true, Color.rgb(84,48,151));
+        quick.setPadding(dp(8),dp(14),dp(8),dp(8)); content.addView(quick);
+
+        search = field(tr("ምርት ፈልግ…","Search products…"), 0);
+        LinearLayout.LayoutParams searchLp = new LinearLayout.LayoutParams(-1, dp(52)); searchLp.bottomMargin=dp(12);
+        content.addView(search, searchLp);
         search.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s,int st,int c,int a){}
             public void onTextChanged(CharSequence s,int st,int before,int count){ renderProducts(); }
             public void afterTextChanged(android.text.Editable e){}
         });
-        accountLabel = text("", 16, true, Color.rgb(25,50,90)); content.addView(accountLabel);
+        accountLabel = text("", 14, true, Color.rgb(79,43,151));
+        accountLabel.setBackground(rounded(Color.rgb(242,235,255), 14, 0));
+        accountLabel.setPadding(dp(12),dp(8),dp(12),dp(8)); content.addView(accountLabel);
         buildAuthAndPost();
-        message = text("", 13, false, Color.rgb(180,55,45)); content.addView(message);
-        TextView section = text(tr("የቅርብ ጊዜ ምርቶች","Latest products"),20,true,Color.rgb(20,35,58));
-        content.addView(section);
+        message = text("", 13, true, Color.rgb(180,55,45)); content.addView(message);
+        TextView section = text(tr("የቅርብ ጊዜ ምርቶች","LATEST PRODUCTS"),20,true,Color.rgb(56,28,128));
+        section.setPadding(dp(2),dp(14),dp(2),dp(8)); content.addView(section);
         productList = new LinearLayout(this); productList.setOrientation(LinearLayout.VERTICAL);
         content.addView(productList);
-        TextView socialTitle = text(tr("ከእኛ ጋር በሶሻል ሚዲያ ይገናኙ","Connect with us on social media"),17,true,Color.rgb(20,35,58));
-        content.addView(socialTitle);
-        LinearLayout socialRow = new LinearLayout(this);
-        socialRow.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout socialCard = new LinearLayout(this); socialCard.setOrientation(LinearLayout.VERTICAL);
+        socialCard.setPadding(dp(14),dp(12),dp(14),dp(12));
+        socialCard.setBackground(rounded(Color.WHITE,20,Color.rgb(232,222,248)));
+        TextView socialTitle = text(tr("ከእኛ ጋር በሶሻል ሚዲያ ይገናኙ","CONNECT WITH US"),16,true,Color.rgb(72,34,151));
+        socialCard.addView(socialTitle);
+        LinearLayout socialRow = new LinearLayout(this); socialRow.setOrientation(LinearLayout.VERTICAL);
         Button facebook = button("Facebook", false);
         facebook.setOnClickListener(v -> openSocial("https://www.facebook.com/share/1Cuk1FjurR/?mibextid=wwXIfr"));
         Button telegram = button("Telegram", false);
         telegram.setOnClickListener(v -> openSocial("https://t.me/zuzinat"));
-        socialRow.addView(telegram);
         Button tiktok = button("TikTok", false);
         tiktok.setOnClickListener(v -> openSocial("https://www.tiktok.com/@abenezer67"));
         Button instagram = button("Instagram", false);
         instagram.setOnClickListener(v -> openSocial("https://www.instagram.com/abe-nuda/"));
-        socialRow.addView(facebook); socialRow.addView(tiktok); socialRow.addView(instagram);
-        content.addView(socialRow);
+        socialRow.addView(facebook); socialRow.addView(telegram); socialRow.addView(tiktok); socialRow.addView(instagram);
+        socialCard.addView(socialRow); content.addView(socialCard);
         accountLabel.setText(accessToken.isEmpty() ? tr("እንግዳ ተጠቃሚ","Browsing as guest") : tr("ገብተዋል","Signed in"));
         setContentView(root);
     }
@@ -313,7 +348,8 @@ public class MainActivity extends Activity {
             String name=p.optString("name"), cat=p.optString("category"), desc=p.optString("description");
             if(!(name+" "+cat+" "+desc).toLowerCase(Locale.ROOT).contains(q))continue;
             LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(dp(14),dp(12),dp(14),dp(12));
-            card.setBackgroundColor(Color.WHITE);
+            card.setBackground(rounded(Color.WHITE, 20, Color.rgb(235,228,246)));
+            card.setElevation(dp(3));
             String imageUrl = p.optString("image_url", "");
             if (!imageUrl.isEmpty()) {
                 ImageView photo = new ImageView(this);
@@ -334,7 +370,7 @@ public class MainActivity extends Activity {
             String digits=p.optString("phone").replaceAll("[^0-9]","");
             contact.setOnClickListener(v->{try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://wa.me/"+digits)));}catch(Exception ignored){}});
             card.addView(contact);
-            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.bottomMargin=dp(12);
+            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.bottomMargin=dp(14);
             productList.addView(card,lp);
         }
         if(productList.getChildCount()==0)productList.addView(text(tr("ምርት አልተገኘም።","No products found."),14,false,Color.GRAY));
