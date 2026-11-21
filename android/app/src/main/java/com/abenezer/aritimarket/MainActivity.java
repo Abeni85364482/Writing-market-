@@ -157,6 +157,9 @@ public class MainActivity extends Activity {
         socialRow.setOrientation(LinearLayout.VERTICAL);
         Button facebook = button("Facebook", false);
         facebook.setOnClickListener(v -> openSocial("https://www.facebook.com/share/1Cuk1FjurR/?mibextid=wwXIfr"));
+        Button telegram = button("Telegram", false);
+        telegram.setOnClickListener(v -> openSocial("https://t.me/zuzinat"));
+        socialRow.addView(telegram);
         Button tiktok = button("TikTok", false);
         tiktok.setOnClickListener(v -> openSocial("https://www.tiktok.com/@abenezer67"));
         Button instagram = button("Instagram", false);
