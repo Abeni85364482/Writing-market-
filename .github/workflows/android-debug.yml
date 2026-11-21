@@ -22,7 +22,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
-      - name: Build Android test APK
+      - name: Build Android APK
         working-directory: android
         run: gradle assembleDebug
       - name: Build Play Store app bundle (unsigned)
@@ -31,7 +31,7 @@ jobs:
       - name: Upload Android packages
         uses: actions/upload-artifact@v4
         with:
-          name: ariti-market-android-packages
+          name: ariti-market-android-1.0.1
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             android/app/build/outputs/bundle/release/app-release.aab
@@ -39,11 +39,13 @@ jobs:
       - name: Publish installable APK download
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0-test
-          name: ARITI MARKET Android 1.0.0 (Test)
+          tag_name: v1.0.1-test
+          name: ARITI MARKET Android 1.0.1 (Test)
           body: |
-            Installable Android test build of ARITI MARKET.
-            This is a debug-signed APK for direct testing outside Google Play.
+            ARITI MARKET Android test build.
+            Debug-signed APK for direct Android testing outside Google Play.
+            This build wraps the live ARITI MARKET service and includes an app launcher icon,
+            product photo picker support, safe external links, and an offline retry screen.
             The Play Store AAB is unsigned and is not ready for Play Console submission.
           files: android/app/build/outputs/apk/debug/app-debug.apk
           make_latest: true
