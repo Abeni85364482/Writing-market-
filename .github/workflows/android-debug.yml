@@ -1,10 +1,12 @@
-name: Build ARITI MARKET Android packages
+name: Build and publish ARITI MARKET Android APK
 on:
   workflow_dispatch:
   push:
     paths:
       - 'android/**'
       - '.github/workflows/android-debug.yml'
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,7 +25,7 @@ jobs:
       - name: Build Android test APK
         working-directory: android
         run: gradle assembleDebug
-      - name: Build Play Store AAB (unsigned)
+      - name: Build Play Store app bundle (unsigned)
         working-directory: android
         run: gradle bundleRelease
       - name: Upload Android packages
@@ -34,3 +36,14 @@ jobs:
             android/app/build/outputs/apk/debug/app-debug.apk
             android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
+      - name: Publish installable APK download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-test
+          name: ARITI MARKET Android 1.0.0 (Test)
+          body: |
+            Installable Android test build of ARITI MARKET.
+            This is a debug-signed APK for direct testing outside Google Play.
+            The Play Store AAB is unsigned and is not ready for Play Console submission.
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          make_latest: true
