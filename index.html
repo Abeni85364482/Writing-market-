@@ -222,6 +222,21 @@ const gamesBack=document.createElement("button");gamesBack.type="button";gamesBa
 pageMessages.innerHTML='<h2>💬 መልዕክቶች / Messages</h2><p class="muted">ከምርት ሻጮች ጋር በቀጥታ ይወያዩ። / Chat directly with sellers.</p><div id="messageThreads" class="panel">ገብተው መልዕክቶችዎን ይመልከቱ።</div><div id="activeChat" class="panel hidden"><div class="row"><b id="chatTitle">Chat</b><button type="button" class="alt" id="closeChat">← Back</button></div><div id="chatHistory" class="chat-history"></div><textarea id="chatDraft" rows="3" maxlength="2000" placeholder="መልዕክብዎን ይጻፉ..."></textarea><button type="button" id="sendChat">መላክ / Send</button><p id="chatStatus" class="muted"></p></div>';
 let activeChatPeer=null,activeChatProduct=null,messageRealtime=null;
 function showPage(name,updateHash=true){const names=["home","categories","sell","profile","games","messages"];if(!names.includes(name))name="home";if(name==="sell"){if(user){$("post").classList.remove("hidden")}else{name="profile";$("auth").classList.remove("hidden");$("authmsg").textContent="ምርት ለመለጠፍ መጀመሪያ ይግቡ። / Sign in to sell."}}if(name==="messages"&&!user){name="profile";$("auth").classList.remove("hidden");$("authmsg").textContent="💬 መልዕክት ለመላክ መጀመሪያ ይግቡ። / Please sign in first to use Chat."}if(name==="profile"&&!user){$("auth").classList.remove("hidden")}pages.forEach((p,i)=>p.classList.toggle("active",names[i]===name));if(updateHash&&location.hash!=="#"+name)history.pushState({page:name},"","#"+name);window.scrollTo({top:0,behavior:"smooth"});}
+/* Register navigation immediately, before the rest of app startup code. */
+document.addEventListener("click",function(event){
+ const button=event.target.closest("#mobileDock button");
+ if(!button)return;
+ const target={dockHome:"home",dockCategories:"categories",dockSell:"sell",dockProfile:"profile",dockGames:"games",dockMessages:"messages"}[button.id];
+ if(!target)return;
+ event.preventDefault();
+ try{showPage(target);}catch(error){
+  const names=["home","categories","sell","profile","games","messages"];
+  const index=names.indexOf(target);
+  pages.forEach((page,i)=>page.classList.toggle("active",i===index));
+  if(location.hash!=="#"+target)history.pushState({page:target},"","#"+target);
+ }
+ if(target==="messages"&&user&&typeof loadMessageThreads==="function")loadMessageThreads();
+},true);
 window.addEventListener("popstate",()=>showPage(location.hash.slice(1)||"home",false));
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function paint(){ $("language").textContent=lang==="am"?"English":"አማርኛ";$("welcome").textContent=lang==="am"?"ወደ ARITI MARKET እንኳን በደህና መጡ!":"Welcome to ARITI MARKET!";$("intro").textContent=lang==="am"?"ምርቶችን ይፈልጉ፣ ያስታውቁ፣ ከሻጩ ጋር በቀጥታ ይገናኙ።":"Discover products, post your own, and contact sellers directly.";render()}
