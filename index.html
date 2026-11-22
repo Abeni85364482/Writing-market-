@@ -313,5 +313,15 @@ $("dockHome").onclick=()=>showPage("home");
 $("dockCategories").onclick=()=>showPage("categories");
 $("dockSell").onclick=()=>{showPage(user?"sell":"profile");if(!user)$("authmsg").textContent="ምርት ለመለጠፍ መጀመሪያ ይግቡ። / Sign in to sell.";};
 $("dockProfile").onclick=()=>showPage("profile");$("dockGames").onclick=()=>showPage("games");$("dockMessages").onclick=()=>{showPage("messages");if(user)loadMessageThreads()};
+// Reliable delegated mobile navigation (capture phase).
+document.getElementById("mobileDock")?.addEventListener("click",event=>{
+ const button=event.target.closest("button");
+ if(!button)return;
+ const target={dockHome:"home",dockCategories:"categories",dockSell:"sell",dockProfile:"profile",dockGames:"games",dockMessages:"messages"}[button.id];
+ if(!target)return;
+ event.preventDefault();
+ showPage(target);
+ if(target==="messages"&&user)loadMessageThreads();
+},true);
 const promoShop=document.getElementById("promoShop");if(promoShop)promoShop.onclick=()=>{document.getElementById("products")?.scrollIntoView({behavior:"smooth",block:"start"});};paint();authState();load();showPage(location.hash.slice(1)||"home",false);
 </script><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.warn("App install support:",err)));}</script></body></html>
