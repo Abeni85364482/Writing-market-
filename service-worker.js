@@ -1,4 +1,4 @@
-const CACHE_NAME = "ariti-market-v4";
+const CACHE_NAME = "ariti-market-v5";
 const BASE_URL = new URL("./", self.location.href);
 const APP_SHELL = [BASE_URL.href, new URL("manifest.webmanifest", BASE_URL).href, new URL("app-icon.svg", BASE_URL).href];
 self.addEventListener("install", event => {
