@@ -46,7 +46,7 @@
   </div>
 </div>
 <div class="card" style="margin-top:14px">
-  <div class="row"><div><h2>Find creators / ፈጣሪዎችን ፈልግ</h2><p class="muted">የሌሎችን ይዘት ተመልከት፤ ከወደድከው Follow አድርግ።</p></div><button class="btn secondary" id="refreshCreatorsBtn" type="button">Refresh</button></div>
+  <div class="row"><div><h2>Find creators / ፈጣሪዎችን ፈልግ</h2><p class="muted">ይህን ዝርዝር ለማየት በመጀመሪያ መመዝገብ ወይም መግባት አለብህ።</p></div><button class="btn secondary" id="refreshCreatorsBtn" type="button">Refresh</button></div>
   <div class="field"><label>Search by name or TikTok username</label><input id="creatorSearch" type="search" placeholder="ስም ወይም @username ፈልግ..." autocomplete="off"></div><div id="communityList"><div class="empty">የፈጣሪዎች ዝርዝር በመጫን ላይ...</div></div>
 </div>
 </section>
@@ -99,7 +99,13 @@ function renderCreators(){
   box.innerHTML=data.map((p,i)=>'<div class="creator"><div class="creator-info"><div class="avatar">'+safe((p.display_name||p.tiktok_username||'A').slice(0,1).toUpperCase())+'</div><div><b>'+safe(p.display_name||'TikTok creator')+'</b><small>@'+safe(p.tiktok_username)+' · '+safe(p.country||'Ethiopia')+'</small><small>'+safe(p.bio||'Creator on ABE TIKTOK GROWTH')+'</small></div></div><a href="'+safe(p.tiktok_url)+'" target="_blank" rel="noopener noreferrer">Open TikTok ↗</a></div>').join('');
 }
 async function loadCreators(){
-  const box=byId('communityList'); box.innerHTML='<div class="empty">በመጫን ላይ...</div>';
+  const box=byId('communityList');
+  if(!activeUser){
+    creatorCache=[];
+    box.innerHTML='<div class="note">🔒 የፈጣሪዎችን ዝርዝር ለማየት መመዝገብ ወይም መግባት ግዴታ ነው። ከላይ Create account ወይም Log in ይጫኑ።</div>';
+    return;
+  }
+  box.innerHTML='<div class="empty">በመጫን ላይ...</div>';
   const {data,error}=await supabase.from('abe_tiktok_creators').select('user_id,display_name,tiktok_username,tiktok_url,bio,country').eq('is_public',true).order('created_at',{ascending:false}).limit(100);
   if(error){box.innerHTML='<p class="danger">ዝርዝሩን መጫን አልተቻለም። '+safe(error.message)+'</p>';return;}
   creatorCache=data||[]; renderCreators();
