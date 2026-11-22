@@ -339,4 +339,29 @@ document.getElementById("mobileDock")?.addEventListener("click",event=>{
  if(target==="messages"&&user)loadMessageThreads();
 },true);
 const promoShop=document.getElementById("promoShop");if(promoShop)promoShop.onclick=()=>{document.getElementById("products")?.scrollIntoView({behavior:"smooth",block:"start"});};paint();authState();load();showPage(location.hash.slice(1)||"home",false);
-</script><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.warn("App install support:",err)));}</script></body></html>
+</script><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.warn("App install support:",err)));}</script><script>
+/* iPhone navigation fallback: bind directly to each visible dock button. */
+(function(){
+  var ids={dockHome:"home",dockCategories:"categories",dockSell:"sell",dockProfile:"profile",dockGames:"games",dockMessages:"messages"};
+  function navigate(id){
+    var name=ids[id]; if(!name)return;
+    try { if(typeof showPage==="function") showPage(name); } catch(e) {}
+    var pageIds=["pageHome","pageCategories","pageSell","pageProfile","pageGames","pageMessages"];
+    var names=["home","categories","sell","profile","games","messages"];
+    var active=names.find(function(n,i){return document.getElementById(pageIds[i]) && document.getElementById(pageIds[i]).classList.contains("active")});
+    if(!active) active=name;
+    pageIds.forEach(function(pid,i){
+      var page=document.getElementById(pid);
+      if(page) page.style.display=(names[i]===active)?"block":"none";
+    });
+    if(location.hash!=="#"+active) history.pushState({page:active},"","#"+active);
+    window.scrollTo(0,0);
+  }
+  Object.keys(ids).forEach(function(id){
+    var button=document.getElementById(id);
+    if(!button)return;
+    button.onclick=function(event){event.preventDefault();event.stopPropagation();navigate(id);};
+  });
+})();
+</script>
+</body></html>
