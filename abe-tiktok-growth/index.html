@@ -47,7 +47,7 @@
 </div>
 <div class="card" style="margin-top:14px">
   <div class="row"><div><h2>Find creators / ፈጣሪዎችን ፈልግ</h2><p class="muted">የሌሎችን ይዘት ተመልከት፤ ከወደድከው Follow አድርግ።</p></div><button class="btn secondary" id="refreshCreatorsBtn" type="button">Refresh</button></div>
-  <div id="communityList"><div class="empty">የፈጣሪዎች ዝርዝር በመጫን ላይ...</div></div>
+  <div class="field"><label>Search by name or TikTok username</label><input id="creatorSearch" type="search" placeholder="ስም ወይም @username ፈልግ..." autocomplete="off"></div><div id="communityList"><div class="empty">የፈጣሪዎች ዝርዝር በመጫን ላይ...</div></div>
 </div>
 </section>
 <section id="guide" class="section"><div class="cols"><div class="card"><h2>Organic growth checklist</h2><div class="item"><b>ጠቃሚ ይዘት</b><p>ለተመልካችህ መረጃ፣ መዝናኛ ወይም ተሞክሮ ስጥ።</p></div><div class="item"><b>ግልጽ መልዕክት</b><p>አንድ ቪዲዮ አንድ ዋና ሀሳብ ይኑረው።</p></div><div class="item"><b>ቋሚነት</b><p>ሊቀጥል የሚችልህን የልጥፍ መርሃ ግብር ያዝ።</p></div><div class="item"><b>Analytics</b><p>Watch time፣ completion rate፣ shares እና saves አይተህ ቀጣዩን ቪዲዮ አሻሽል።</p></div></div><div class="card"><h2>Important</h2><p class="muted">TikTok አካውንትህን በዚህ መተግበሪያ አታገናኝ፤ password ወይም verification code አታስገባ። የTikTok የእውነተኛ ቁጥሮችን ከTikTok Analytics በእጅ አስገባ።</p><p><a style="color:var(--cyan)" href="https://www.tiktok.com/creator-center" target="_blank" rel="noopener">Open TikTok Creator Center ↗</a></p></div></div></section>
@@ -56,7 +56,7 @@
 const KEY='abeTikGrowthV1';let data=JSON.parse(localStorage.getItem(KEY)||'{"followers":0,"videos":0,"history":[],"ideas":[],"profile":{}}');
 function persist(){localStorage.setItem(KEY,JSON.stringify(data));render()}
 function show(id){document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));window.scrollTo({top:0,behavior:'smooth'})}
-function render(){document.getElementById('followersStat').textContent=Number(data.followers||0).toLocaleString();document.getElementById('videosStat').textContent=Number(data.videos||0).toLocaleString();document.getElementById('ideasStat').textContent=data.ideas.length;let h=data.history;let gain=h.length>1?h[h.length-1].followers-h[Math.max(0,h.length-8)].followers:0;document.getElementById('growthStat').textContent=(gain>0?'+':'')+gain.toLocaleString();document.getElementById('followerInput').value=data.followers||'';document.getElementById('videoInput').value=data.videos||'';document.getElementById('history').innerHTML=h.length?h.slice().reverse().map(x=>'<div class="item"><b>'+new Date(x.date).toLocaleDateString()+'</b><p>'+x.followers.toLocaleString()+' followers</p></div>').join(''):'<div class="empty">ገና የተመዘገበ ታሪክ የለም።</div>';document.getElementById('ideaList').innerHTML=data.ideas.length?data.ideas.map((x,i)=>'<div class="item"><b>'+esc(x.title)+'</b><p>'+esc(x.category)+' · '+esc(x.date||'No date')+'</p><p>'+esc(x.hook)+'</p><button class="pill" onclick="removeIdea('+i+')">Remove</button></div>').join(''):'<div class="empty">እስካሁን ሀሳብ አልጨመርክም።</div>';document.getElementById('myHandle').value=data.profile.handle||'';document.getElementById('myLink').value=data.profile.link||'';document.getElementById('communityList').innerHTML='<div class="creator"><div class="creator-info"><div class="avatar">A</div><div><b>ABE TIKTOK GROWTH</b><small>Creator community starter</small></div></div><a href="https://www.tiktok.com/creator-center" target="_blank" rel="noopener">Creator tools ↗</a></div><p class="muted">ሌሎች ፈጣሪዎች ሲጨመሩ ዝርዝሩ እዚህ ይታያል። ይህ የመጀመሪያ ስሪት የግል መረጃ ወደ ሰርቨር አይልክም።</p>'}
+function render(){document.getElementById('followersStat').textContent=Number(data.followers||0).toLocaleString();document.getElementById('videosStat').textContent=Number(data.videos||0).toLocaleString();document.getElementById('ideasStat').textContent=data.ideas.length;let h=data.history;let gain=h.length>1?h[h.length-1].followers-h[Math.max(0,h.length-8)].followers:0;document.getElementById('growthStat').textContent=(gain>0?'+':'')+gain.toLocaleString();document.getElementById('followerInput').value=data.followers||'';document.getElementById('videoInput').value=data.videos||'';document.getElementById('history').innerHTML=h.length?h.slice().reverse().map(x=>'<div class="item"><b>'+new Date(x.date).toLocaleDateString()+'</b><p>'+x.followers.toLocaleString()+' followers</p></div>').join(''):'<div class="empty">ገና የተመዘገበ ታሪክ የለም።</div>';document.getElementById('ideaList').innerHTML=data.ideas.length?data.ideas.map((x,i)=>'<div class="item"><b>'+esc(x.title)+'</b><p>'+esc(x.category)+' · '+esc(x.date||'No date')+'</p><p>'+esc(x.hook)+'</p><button class="pill" onclick="removeIdea('+i+')">Remove</button></div>').join(''):'<div class="empty">እስካሁን ሀሳብ አልጨመርክም።</div>';document.getElementById('communityList').innerHTML='<div class="creator"><div class="creator-info"><div class="avatar">A</div><div><b>ABE TIKTOK GROWTH</b><small>Creator community starter</small></div></div><a href="https://www.tiktok.com/creator-center" target="_blank" rel="noopener">Creator tools ↗</a></div><p class="muted">ሌሎች ፈጣሪዎች ሲጨመሩ ዝርዝሩ እዚህ ይታያል። ይህ የመጀመሪያ ስሪት የግል መረጃ ወደ ሰርቨር አይልክም።</p>'}
 function saveStats(){let f=Math.max(0,Number(document.getElementById('followerInput').value||0)),v=Math.max(0,Number(document.getElementById('videoInput').value||0));data.followers=f;data.videos=v;data.history.push({date:new Date().toISOString(),followers:f});persist();document.getElementById('saveMsg').textContent='Saved successfully ✓'}
 function addIdea(){let t=document.getElementById('ideaTitle').value.trim();if(!t){alert('የቪዲዮ ርዕስ አስገባ');return}data.ideas.push({title:t,category:document.getElementById('ideaCategory').value,hook:document.getElementById('ideaHook').value,date:document.getElementById('ideaDate').value});['ideaTitle','ideaHook','ideaDate'].forEach(id=>document.getElementById(id).value='');persist()}
 function removeIdea(i){data.ideas.splice(i,1);persist()}
@@ -69,7 +69,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.119.2';
 const supabase = createClient('https://uuuiysoowojsqytgdnoo.supabase.co','sb_publishable_klraPqTbuK72dLJCirpIxg_qlPL1522');
 const byId = id => document.getElementById(id);
 const safe = value => String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-let activeUser = null;
+let activeUser = null; let creatorCache = [];
 function authMessage(message, error=false){ const el=byId('authStatus'); el.textContent=message; el.className=error?'note danger':'note'; }
 async function loadCreatorProfile(){
   if(!activeUser) return;
@@ -90,13 +90,20 @@ async function ensureCreatorProfile(){
   }
   await loadCreatorProfile();
 }
-async function loadCreators(){
+function renderCreators(){
   const box=byId('communityList');
+  const term=(byId('creatorSearch')?.value||'').trim().toLowerCase();
+  const data=creatorCache.filter(p=>(p.display_name||'').toLowerCase().includes(term)||(p.tiktok_username||'').toLowerCase().includes(term));
   box.innerHTML='<div class="empty">በመጫን ላይ...</div>';
+  if(!creatorCache.length){box.innerHTML='<div class="empty">ገና ሌላ ፈጣሪ አልተመዘገበም። የመጀመሪያው ሁን!</div>';return;}
+  if(!data.length){box.innerHTML='<div class="empty">የፍለጋህ ውጤት አልተገኘም።</div>';return;}
+  box.innerHTML=data.map((p,i)=>'<div class="creator"><div class="creator-info"><div class="avatar">'+safe((p.display_name||p.tiktok_username||'A').slice(0,1).toUpperCase())+'</div><div><b>'+safe(p.display_name||'TikTok creator')+'</b><small>@'+safe(p.tiktok_username)+' · '+safe(p.country||'Ethiopia')+'</small><small>'+safe(p.bio||'Creator on ABE TIKTOK GROWTH')+'</small></div></div><a href="'+safe(p.tiktok_url)+'" target="_blank" rel="noopener noreferrer">Open TikTok ↗</a></div>').join('');
+}
+async function loadCreators(){
+  const box=byId('communityList'); box.innerHTML='<div class="empty">በመጫን ላይ...</div>';
   const {data,error}=await supabase.from('abe_tiktok_creators').select('user_id,display_name,tiktok_username,tiktok_url,bio,country').eq('is_public',true).order('created_at',{ascending:false}).limit(100);
   if(error){box.innerHTML='<p class="danger">ዝርዝሩን መጫን አልተቻለም። '+safe(error.message)+'</p>';return;}
-  if(!data?.length){box.innerHTML='<div class="empty">ገና ሌላ ፈጣሪ አልተመዘገበም። የመጀመሪያው ሁን!</div>';return;}
-  box.innerHTML=data.map((p,i)=>'<div class="creator"><div class="creator-info"><div class="avatar">'+safe((p.display_name||p.tiktok_username||'A').slice(0,1).toUpperCase())+'</div><div><b>'+safe(p.display_name||'TikTok creator')+'</b><small>@'+safe(p.tiktok_username)+' · '+safe(p.country||'Ethiopia')+'</small><small>'+safe(p.bio||'Creator on ABE TIKTOK GROWTH')+'</small></div></div><a href="'+safe(p.tiktok_url)+'" target="_blank" rel="noopener noreferrer">Open TikTok ↗</a></div>').join('');
+  creatorCache=data||[]; renderCreators();
 }
 async function syncAuth(){
   const {data:{session}}=await supabase.auth.getSession();
@@ -137,6 +144,7 @@ byId('saveCreatorBtn').addEventListener('click',async()=>{
   await loadCreators();
 });
 byId('refreshCreatorsBtn').addEventListener('click',loadCreators);
+byId('creatorSearch').addEventListener('input',renderCreators);
 supabase.auth.onAuthStateChange((_event,session)=>{activeUser=session?.user||null;setTimeout(()=>syncAuth(),0);});
 syncAuth();
 </script></body></html>
