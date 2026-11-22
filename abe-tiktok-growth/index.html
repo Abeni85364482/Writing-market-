@@ -60,7 +60,6 @@ function render(){document.getElementById('followersStat').textContent=Number(da
 function saveStats(){let f=Math.max(0,Number(document.getElementById('followerInput').value||0)),v=Math.max(0,Number(document.getElementById('videoInput').value||0));data.followers=f;data.videos=v;data.history.push({date:new Date().toISOString(),followers:f});persist();document.getElementById('saveMsg').textContent='Saved successfully ✓'}
 function addIdea(){let t=document.getElementById('ideaTitle').value.trim();if(!t){alert('የቪዲዮ ርዕስ አስገባ');return}data.ideas.push({title:t,category:document.getElementById('ideaCategory').value,hook:document.getElementById('ideaHook').value,date:document.getElementById('ideaDate').value});['ideaTitle','ideaHook','ideaDate'].forEach(id=>document.getElementById(id).value='');persist()}
 function removeIdea(i){data.ideas.splice(i,1);persist()}
-function saveProfile(){data.profile={handle:document.getElementById('myHandle').value.trim(),link:document.getElementById('myLink').value.trim()};persist();document.getElementById('profileMsg').textContent='Profile saved on this device ✓'}
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 render();
 </script>
